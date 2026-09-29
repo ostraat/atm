@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6130B761-B86F-4002-AFCE-1BE33BF55831}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atm.Domain", "src\Atm.Domain\Atm.Domain.csproj", "{E49B68AE-35D6-49F7-B6C1-4291FAEEEDE3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atm.Infrastructure", "src\Atm.Infrastructure\Atm.Infrastructure.csproj", "{B060ED31-B4BE-4767-B0F1-589363D2F852}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atm.Api", "src\Atm.Api\Atm.Api.csproj", "{2FB82920-971B-4532-8787-8D9F93333335}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A82E5BDF-535E-40F8-ABB6-BCB51F618CBE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atm.Domain.Tests", "tests\Atm.Domain.Tests\Atm.Domain.Tests.csproj", "{31B23B4B-CCAE-4A66-B3CB-099A70B86158}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atm.Infrastructure.Tests", "tests\Atm.Infrastructure.Tests\Atm.Infrastructure.Tests.csproj", "{9FFA068B-C28C-4E1C-B3CC-0D3318D081C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atm.Api.Tests", "tests\Atm.Api.Tests\Atm.Api.Tests.csproj", "{BC859198-8092-4D92-9802-DC336515F93B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E49B68AE-35D6-49F7-B6C1-4291FAEEEDE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E49B68AE-35D6-49F7-B6C1-4291FAEEEDE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E49B68AE-35D6-49F7-B6C1-4291FAEEEDE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E49B68AE-35D6-49F7-B6C1-4291FAEEEDE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B060ED31-B4BE-4767-B0F1-589363D2F852}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B060ED31-B4BE-4767-B0F1-589363D2F852}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B060ED31-B4BE-4767-B0F1-589363D2F852}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B060ED31-B4BE-4767-B0F1-589363D2F852}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FB82920-971B-4532-8787-8D9F93333335}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FB82920-971B-4532-8787-8D9F93333335}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FB82920-971B-4532-8787-8D9F93333335}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FB82920-971B-4532-8787-8D9F93333335}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31B23B4B-CCAE-4A66-B3CB-099A70B86158}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31B23B4B-CCAE-4A66-B3CB-099A70B86158}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31B23B4B-CCAE-4A66-B3CB-099A70B86158}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31B23B4B-CCAE-4A66-B3CB-099A70B86158}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FFA068B-C28C-4E1C-B3CC-0D3318D081C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FFA068B-C28C-4E1C-B3CC-0D3318D081C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FFA068B-C28C-4E1C-B3CC-0D3318D081C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FFA068B-C28C-4E1C-B3CC-0D3318D081C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC859198-8092-4D92-9802-DC336515F93B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC859198-8092-4D92-9802-DC336515F93B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC859198-8092-4D92-9802-DC336515F93B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC859198-8092-4D92-9802-DC336515F93B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E49B68AE-35D6-49F7-B6C1-4291FAEEEDE3} = {6130B761-B86F-4002-AFCE-1BE33BF55831}
+		{B060ED31-B4BE-4767-B0F1-589363D2F852} = {6130B761-B86F-4002-AFCE-1BE33BF55831}
+		{2FB82920-971B-4532-8787-8D9F93333335} = {6130B761-B86F-4002-AFCE-1BE33BF55831}
+		{31B23B4B-CCAE-4A66-B3CB-099A70B86158} = {A82E5BDF-535E-40F8-ABB6-BCB51F618CBE}
+		{9FFA068B-C28C-4E1C-B3CC-0D3318D081C3} = {A82E5BDF-535E-40F8-ABB6-BCB51F618CBE}
+		{BC859198-8092-4D92-9802-DC336515F93B} = {A82E5BDF-535E-40F8-ABB6-BCB51F618CBE}
+	EndGlobalSection
+EndGlobal
