@@ -1,0 +1,31 @@
+services:
+  atm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: atm:local
+    ports:
+      - "8080:8080"
+    volumes:
+      - atm-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+
+  api-test:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    working_dir: /src
+    volumes:
+      - ./backend:/src
+    environment:
+      HOME: /tmp
+      DOTNET_CLI_HOME: /tmp
+      NUGET_PACKAGES: /tmp/nuget
+    entrypoint: ["dotnet", "test", "Atm.sln", "--verbosity", "minimal"]
+    profiles: ["test"]
+
+volumes:
+  atm-data:
