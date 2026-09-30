@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:idempotency-key": "node scripts/check-idempotency-key.mjs"
   },
   "dependencies": {
     "vue": "3.5.13",

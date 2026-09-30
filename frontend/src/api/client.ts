@@ -6,6 +6,7 @@ import type {
   TransferResponse,
   WithdrawResponse
 } from '../types/api'
+import { newIdempotencyKey } from './idempotencyKey'
 
 const jsonHeaders = { 'Content-Type': 'application/json' }
 
@@ -39,7 +40,7 @@ export async function getTransactions(id: string): Promise<TransactionsResponse>
 export async function deposit(to: string, amount: number): Promise<DepositResponse> {
   const response = await fetch('/api/v1/deposit', {
     method: 'POST',
-    headers: { ...jsonHeaders, 'Idempotency-Key': crypto.randomUUID() },
+    headers: { ...jsonHeaders, 'Idempotency-Key': newIdempotencyKey() },
     body: JSON.stringify({ to, amount })
   })
   if (!response.ok) throw new Error(await readError(response))
@@ -49,7 +50,7 @@ export async function deposit(to: string, amount: number): Promise<DepositRespon
 export async function withdraw(from: string, amount: number): Promise<WithdrawResponse> {
   const response = await fetch('/api/v1/withdraw', {
     method: 'POST',
-    headers: { ...jsonHeaders, 'Idempotency-Key': crypto.randomUUID() },
+    headers: { ...jsonHeaders, 'Idempotency-Key': newIdempotencyKey() },
     body: JSON.stringify({ from, amount })
   })
   if (!response.ok) throw new Error(await readError(response))
@@ -59,7 +60,7 @@ export async function withdraw(from: string, amount: number): Promise<WithdrawRe
 export async function transfer(from: string, to: string, amount: number): Promise<TransferResponse> {
   const response = await fetch('/api/v1/transfer', {
     method: 'POST',
-    headers: { ...jsonHeaders, 'Idempotency-Key': crypto.randomUUID() },
+    headers: { ...jsonHeaders, 'Idempotency-Key': newIdempotencyKey() },
     body: JSON.stringify({ from, to, amount })
   })
   if (!response.ok) throw new Error(await readError(response))
