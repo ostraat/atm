@@ -2,15 +2,17 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { deposit, getAccounts, transfer, withdraw } from '../api/client'
-import type { Account } from '../types/api'
 import { setHeaderBack } from '../headerBack'
+import type { Account } from '../types/api'
 import { formatMoney, parseDollarsToCents } from '../format'
+
+type Step = 'amount' | 'account' | 'from' | 'to' | 'summary'
 
 const props = defineProps<{ type: string }>()
 const route = useRoute()
 const router = useRouter()
 
-const step = ref<'amount' | 'account' | 'from' | 'to' | 'summary'>('amount')
+const step = ref<Step>('amount')
 const amountText = ref('')
 const accounts = ref<Account[]>([])
 const selectedAccountId = ref<string | null>(null)
@@ -32,10 +34,66 @@ const fromAccount = computed(() => accounts.value.find(a => a.id === fromId.valu
 const toAccount = computed(() => accounts.value.find(a => a.id === toId.value) ?? null)
 const sameAccount = computed(() => !!fromId.value && fromId.value === toId.value)
 
+const amountRecap = computed(() =>
+  amountCents.value == null ? null : `Amount: ${formatMoney(amountCents.value)}`
+)
+
+const accountRecap = computed(() => {
+  if (isTransfer.value) return null
+  if (!selectedAccount.value) return null
+  const prep = props.type === 'deposit' ? 'To' : 'From'
+  return `${prep} account: ${selectedAccount.value.label}`
+})
+
+const fromRecap = computed(() =>
+  fromAccount.value ? `From account: ${fromAccount.value.label}` : null
+)
+
+const toRecap = computed(() =>
+  toAccount.value ? `To account: ${toAccount.value.label}` : null
+)
+
+function goBackStep() {
+  error.value = ''
+  if (step.value === 'summary') {
+    step.value = isTransfer.value ? 'to' : 'account'
+    // Deposit/withdraw with only amount→summary when account prefilled:
+    // still go to account step so user can change it, preserving selection.
+    return
+  }
+  if (step.value === 'to') {
+    step.value = 'from'
+    return
+  }
+  if (step.value === 'from' || step.value === 'account') {
+    step.value = 'amount'
+    return
+  }
+  router.back()
+}
+
+onMounted(async () => {
+  setHeaderBack(goBackStep)
+  const response = await getAccounts()
+  accounts.value = response.accounts
+  const presetAccount = typeof route.query.accountId === 'string' ? route.query.accountId : null
+  const presetFrom = typeof route.query.from === 'string' ? route.query.from : null
+  if (!isTransfer.value && presetAccount) {
+    selectedAccountId.value = presetAccount
+  }
+  if (isTransfer.value && presetFrom) {
+    fromId.value = presetFrom
+  }
+})
+
+onUnmounted(() => setHeaderBack(null))
+
 watch(() => props.type, () => {
   step.value = 'amount'
   error.value = ''
 })
+
+watch(step, () => setHeaderBack(goBackStep))
 
 function goNextFromAmount() {
   error.value = ''
@@ -44,9 +102,10 @@ function goNextFromAmount() {
     return
   }
   if (isTransfer.value) {
-    step.value = fromId.value ? 'to' : 'from'
+    // Always include both from and to steps (even when from is prefilled).
+    step.value = 'from'
   } else {
-    step.value = selectedAccountId.value ? 'summary' : 'account'
+    step.value = 'account'
   }
 }
 
@@ -64,33 +123,6 @@ function chooseTo(id: string) {
   toId.value = id
   step.value = 'summary'
 }
-
-function back() {
-  error.value = ''
-  if (step.value === 'summary') {
-    step.value = isTransfer.value ? 'to' : (selectedAccountId.value ? 'amount' : 'account')
-    if (isTransfer.value) return
-  }
-  if (step.value === 'to') { step.value = 'from'; return }
-  if (step.value === 'from' || step.value === 'account') { step.value = 'amount'; return }
-  router.back()
-}
-
-onMounted(async () => {
-  setHeaderBack(back)
-  const response = await getAccounts()
-  accounts.value = response.accounts
-  const presetAccount = typeof route.query.accountId === 'string' ? route.query.accountId : null
-  const presetFrom = typeof route.query.from === 'string' ? route.query.from : null
-  if (!isTransfer.value && presetAccount) {
-    selectedAccountId.value = presetAccount
-  }
-  if (isTransfer.value && presetFrom) {
-    fromId.value = presetFrom
-  }
-})
-onUnmounted(() => setHeaderBack(null))
-watch(step, () => setHeaderBack(back))
 
 const summaryText = computed(() => {
   const amount = amountCents.value
@@ -146,15 +178,19 @@ async function confirm() {
     <input id="amount" v-model="amountText" inputmode="decimal" placeholder="25.00" />
     <p v-if="error" class="error">{{ error }}</p>
     <div class="wizard-nav">
-      <button @click="goNextFromAmount">Continue</button>
+      <button type="button" @click="goNextFromAmount">Continue</button>
     </div>
   </div>
 
   <div v-else-if="step === 'account'" class="card">
+    <div v-if="amountRecap" class="step-recap">
+      <p>{{ amountRecap }}</p>
+    </div>
     <p>Select account</p>
     <button
       v-for="account in accounts"
       :key="account.id"
+      type="button"
       class="choice"
       :class="{ selected: selectedAccountId === account.id }"
       @click="chooseAccount(account.id)"
@@ -164,10 +200,14 @@ async function confirm() {
   </div>
 
   <div v-else-if="step === 'from'" class="card">
+    <div v-if="amountRecap" class="step-recap">
+      <p>{{ amountRecap }}</p>
+    </div>
     <p>Transfer from</p>
     <button
       v-for="account in accounts"
       :key="account.id"
+      type="button"
       class="choice"
       :class="{ selected: fromId === account.id }"
       @click="chooseFrom(account.id)"
@@ -177,10 +217,15 @@ async function confirm() {
   </div>
 
   <div v-else-if="step === 'to'" class="card">
+    <div class="step-recap">
+      <p v-if="amountRecap">{{ amountRecap }}</p>
+      <p v-if="fromRecap">{{ fromRecap }}</p>
+    </div>
     <p>Transfer to</p>
     <button
       v-for="account in accounts"
       :key="account.id"
+      type="button"
       class="choice"
       :class="{ selected: toId === account.id }"
       @click="chooseTo(account.id)"
@@ -190,12 +235,18 @@ async function confirm() {
   </div>
 
   <div v-else class="card">
+    <div class="step-recap">
+      <p v-if="amountRecap">{{ amountRecap }}</p>
+      <p v-if="accountRecap">{{ accountRecap }}</p>
+      <p v-if="fromRecap">{{ fromRecap }}</p>
+      <p v-if="toRecap">{{ toRecap }}</p>
+    </div>
     <p>{{ summaryText }}</p>
     <p v-if="sameAccount" class="warning">From and to must be different accounts.</p>
     <p v-if="error" class="error">{{ error }}</p>
     <div class="wizard-nav">
-      <button class="secondary" @click="step = 'amount'">Edit amount</button>
       <button
+        type="button"
         :disabled="submitting || sameAccount || (isTransfer ? !(fromId && toId) : !selectedAccountId)"
         @click="confirm"
       >Confirm</button>
