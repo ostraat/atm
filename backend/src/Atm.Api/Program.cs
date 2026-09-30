@@ -16,8 +16,16 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "ATM API",
         Version = "v1",
-        Description = "Amounts and balances are integer cents (e.g. 10000 = $100.00). Timestamps are UTC."
+        Description =
+            "Amounts and balances are integer cents (e.g. 10000 = $100.00). Timestamps are UTC. " +
+            "Mutating POSTs require an Idempotency-Key header. Domain errors return application/problem+json."
     });
+
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, "Atm.Api.xml");
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    }
 });
 
 builder.Services.AddCors(options =>

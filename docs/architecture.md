@@ -58,7 +58,9 @@ Top-level types end in `Response` and include `error` plus resource fields. Nest
 
 Deposit / withdraw responses include `to` / `from` (matching the request). The customer account’s leg is on `latestTransaction` of that account.
 
-Swagger UI: `/swagger` (not `/api`).
+Swagger UI: `/swagger` (not `/api`). Endpoint summaries, schemas, headers, and HTTP status codes
+(including `400` insufficient funds on withdraw/transfer, `404`, and `409` idempotency conflict)
+are documented there via OpenAPI.
 
 ## Class relationships
 

@@ -51,6 +51,28 @@ public class AtmApiTests
     }
 
     [Fact]
+    public async Task Swagger_documents_insufficient_funds_and_schemas()
+    {
+        var (factory, client, dbPath) = CreateHost();
+        try
+        {
+            var response = await client.GetAsync("/swagger/v1/swagger.json");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var json = await response.Content.ReadAsStringAsync();
+            Assert.Contains("Insufficient funds", json);
+            Assert.Contains("Idempotency-Key", json);
+            Assert.Contains("latestTransaction", json);
+            Assert.Contains("ProblemDetailsResponse", json);
+            Assert.Contains("\"400\"", json);
+            Assert.Contains("\"409\"", json);
+        }
+        finally
+        {
+            await DisposeHostAsync(factory, client, dbPath);
+        }
+    }
+
+    [Fact]
     public async Task Swagger_is_available()
     {
         var (factory, client, dbPath) = CreateHost();
