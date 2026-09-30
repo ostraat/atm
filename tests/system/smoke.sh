@@ -16,13 +16,13 @@ echo "Deposit..."
 curl -fsS -X POST "$BASE_URL/api/v1/deposit" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: smoke-dep-$(date +%s)" \
-  -d "{\"to\":\"$CHECKING\",\"amount\":100}" | grep -q transaction
+  -d "{\"to\":\"$CHECKING\",\"amount\":100}" | grep -q latestTransaction
 
 echo "Withdraw..."
 curl -fsS -X POST "$BASE_URL/api/v1/withdraw" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: smoke-wd-$(date +%s)" \
-  -d "{\"from\":\"$CHECKING\",\"amount\":50}" | grep -q transaction
+  -d "{\"from\":\"$CHECKING\",\"amount\":50}" | grep -q latestTransaction
 
 echo "Transfer..."
 curl -fsS -X POST "$BASE_URL/api/v1/transfer" \

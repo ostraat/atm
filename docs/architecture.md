@@ -56,7 +56,7 @@ Mutating POSTs require `Idempotency-Key`. Success responses are returned only af
 
 Top-level types end in `Response` and include `error` plus resource fields. Nested types (`Account`, `Transaction`) do not use the `Response` suffix.
 
-Deposit / withdraw responses include `to` / `from` (matching the request) and `transaction` (the customer account’s leg).
+Deposit / withdraw responses include `to` / `from` (matching the request). The customer account’s leg is on `latestTransaction` of that account.
 
 Swagger UI: `/swagger` (not `/api`).
 

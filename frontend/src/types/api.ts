@@ -29,13 +29,11 @@ export interface TransactionsResponse {
 export interface DepositResponse {
   error?: string | null
   to: Account
-  transaction: Transaction
 }
 
 export interface WithdrawResponse {
   error?: string | null
   from: Account
-  transaction: Transaction
 }
 
 export interface TransferResponse {

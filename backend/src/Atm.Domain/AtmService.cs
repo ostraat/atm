@@ -83,8 +83,7 @@ public sealed class AtmService
         // Customer receives credit: ToEntry is the customer leg.
         var result = new MoneyMovementResult
         {
-            Account = ToSummary(applied.ToAccount, applied.ToEntry),
-            Transaction = ToTransaction(applied.ToEntry)
+            Account = ToSummary(applied.ToAccount, applied.ToEntry)
         };
 
         await StoreIdempotencyAsync(idempotencyKey, requestHash, result, cancellationToken);
@@ -130,8 +129,7 @@ public sealed class AtmService
 
         var result = new MoneyMovementResult
         {
-            Account = ToSummary(applied.FromAccount, applied.FromEntry),
-            Transaction = ToTransaction(applied.FromEntry)
+            Account = ToSummary(applied.FromAccount, applied.FromEntry)
         };
 
         await StoreIdempotencyAsync(idempotencyKey, requestHash, result, cancellationToken);
@@ -320,7 +318,6 @@ public sealed class TransactionView
 public sealed class MoneyMovementResult
 {
     public required AccountSummary Account { get; init; }
-    public required TransactionView Transaction { get; init; }
 }
 
 public sealed class TransferResult

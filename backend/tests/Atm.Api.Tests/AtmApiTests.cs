@@ -66,7 +66,7 @@ public class AtmApiTests
     }
 
     [Fact]
-    public async Task Accounts_list_and_deposit_include_account_and_transaction()
+    public async Task Accounts_list_and_deposit_include_latest_transaction()
     {
         var (factory, client, dbPath) = CreateHost();
         try
@@ -89,8 +89,8 @@ public class AtmApiTests
             Assert.True(response.IsSuccessStatusCode, raw);
             var body = await response.Content.ReadFromJsonAsync<DepositResponse>();
             Assert.Equal(10_250, body!.To!.Balance);
-            Assert.Equal(250, body.Transaction!.Amount);
-            Assert.Equal("Deposit from ATM", body.Transaction.Label);
+            Assert.Equal(250, body.To.LatestTransaction!.Amount);
+            Assert.Equal("Deposit from ATM", body.To.LatestTransaction.Label);
         }
         finally
         {

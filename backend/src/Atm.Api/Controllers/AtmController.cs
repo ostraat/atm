@@ -60,8 +60,7 @@ public sealed class AtmController : ControllerBase
         var result = await _atm.DepositAsync(request.To, request.Amount, idempotencyKey, cancellationToken);
         return Ok(new DepositResponse
         {
-            To = AccountDto.From(result.Account),
-            Transaction = TransactionDto.From(result.Transaction)
+            To = AccountDto.From(result.Account)
         });
     }
 
@@ -75,8 +74,7 @@ public sealed class AtmController : ControllerBase
         var result = await _atm.WithdrawAsync(request.From, request.Amount, idempotencyKey, cancellationToken);
         return Ok(new WithdrawResponse
         {
-            From = AccountDto.From(result.Account),
-            Transaction = TransactionDto.From(result.Transaction)
+            From = AccountDto.From(result.Account)
         });
     }
 

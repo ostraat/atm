@@ -31,8 +31,8 @@ public class AtmServiceTests
         var result = await service.DepositAsync(repo.CheckingId, 500, "dep-1");
 
         Assert.Equal(10_500, result.Account.Balance);
-        Assert.Equal(500, result.Transaction.Amount);
-        Assert.Equal("Deposit from ATM", result.Transaction.Label);
+        Assert.Equal(500, result.Account.LatestTransaction!.Amount);
+        Assert.Equal("Deposit from ATM", result.Account.LatestTransaction.Label);
         AssertAllTransactionsBalance(repo);
     }
 
@@ -43,8 +43,8 @@ public class AtmServiceTests
         var result = await service.WithdrawAsync(repo.CheckingId, 2_000, "wd-1");
 
         Assert.Equal(8_000, result.Account.Balance);
-        Assert.Equal(-2_000, result.Transaction.Amount);
-        Assert.Equal("Withdraw to ATM", result.Transaction.Label);
+        Assert.Equal(-2_000, result.Account.LatestTransaction!.Amount);
+        Assert.Equal("Withdraw to ATM", result.Account.LatestTransaction.Label);
         AssertAllTransactionsBalance(repo);
     }
 
