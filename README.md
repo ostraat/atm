@@ -38,6 +38,7 @@ cd frontend && npm ci && npm run dev
 - Pending vs cleared ledger entries / cleared balance
 - Stronger audit trail (see docs)
 - Low-cash ATM alerts (needs a correct vault cash model)
+- Withdraw by selecting bill counts for each denomination
 - Distributed flow where individual steps can fail (outbox, retries)
 - Swap SQLite → MySQL/Postgres via EF provider
 - EF raw SQL for profiled hotspots
