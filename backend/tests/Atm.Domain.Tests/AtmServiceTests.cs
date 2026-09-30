@@ -103,6 +103,40 @@ public class AtmServiceTests
             () => service.DepositAsync(repo.CheckingId, 200, "key-x"));
     }
 
+    /// <summary>
+    /// Concurrent requests with the same Idempotency-Key must apply once and
+    /// replay. ASP.NET Core runs concurrent requests on separate scopes; the
+    /// barrier forces both past the initial miss so the atomic re-check is hit.
+    /// </summary>
+    [Fact]
+    public async Task Concurrent_identical_deposits_must_not_double_apply()
+    {
+        var repo = new FakeAtmRepository
+        {
+            SynchronizeAfterIdempotencyMiss = new Barrier(2)
+        };
+        var service = new AtmService(repo);
+        await service.EnsureInitializedAsync();
+
+        const string key = "race-key";
+        // Task.Run so both callers can block in the miss barrier
+        // (a sync Barrier would otherwise deadlock on one thread).
+        var first = Task.Run(() => service.DepositAsync(repo.CheckingId, 100, key));
+        var second = Task.Run(() => service.DepositAsync(repo.CheckingId, 100, key));
+
+        var results = await Task.WhenAll(first, second);
+
+        Assert.Equal(results[0].Account.Balance, results[1].Account.Balance);
+        Assert.Equal(10_100, results[0].Account.Balance);
+
+        var depositLegs = repo.AllEntries.Count(
+            e => e.Label == "Deposit from ATM" && e.Amount == 100);
+        Assert.Equal(1, depositLegs);
+
+        var checking = await repo.GetAccountAsync(repo.CheckingId);
+        Assert.Equal(10_100, checking!.Balance);
+    }
+
     private static void AssertAllTransactionsBalance(FakeAtmRepository repo)
     {
         var groups = repo.AllEntries.GroupBy(e => e.TransactionId);

@@ -22,6 +22,15 @@ public sealed class TransferApplyResult
     public required LedgerEntry ToEntry { get; init; }
 }
 
+/// <summary>
+/// Result of an idempotent transfer: either a fresh apply or a replayed body.
+/// </summary>
+public sealed class IdempotentTransferResult
+{
+    public required string ResponseBody { get; init; }
+    public required bool Replayed { get; init; }
+}
+
 public interface IAtmRepository
 {
     Task EnsureInitializedAsync(CancellationToken cancellationToken = default);
@@ -50,5 +59,17 @@ public interface IAtmRepository
 
     Task<TransferApplyResult> ApplyTransferAsync(
         TransferMutation mutation,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Atomically apply <paramref name="mutation"/> and store the idempotency
+    /// record, or replay a prior success for the same key. Concurrent callers
+    /// with the same key must not double-apply the ledger.
+    /// </summary>
+    Task<IdempotentTransferResult> ApplyTransferOnceAsync(
+        string idempotencyKey,
+        string requestHash,
+        TransferMutation mutation,
+        Func<TransferApplyResult, string> serializeResponse,
         CancellationToken cancellationToken = default);
 }

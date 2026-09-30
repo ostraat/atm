@@ -58,16 +58,12 @@ public sealed class AtmService
         ValidateIdempotencyKey(idempotencyKey);
 
         var requestHash = HashRequest("deposit", accountId, null, amount);
-        var cached = await TryReplayAsync(idempotencyKey, requestHash, cancellationToken);
-        if (cached is not null)
-        {
-            return DeserializeMoney(cached);
-        }
-
         var customer = await RequireCustomerAccountAsync(accountId, cancellationToken);
         var atm = await RequireSystemAccountAsync(AccountKind.Atm, cancellationToken);
 
-        var applied = await _repository.ApplyTransferAsync(
+        var outcome = await _repository.ApplyTransferOnceAsync(
+            idempotencyKey,
+            requestHash,
             new TransferMutation
             {
                 TransactionId = Guid.NewGuid(),
@@ -78,16 +74,14 @@ public sealed class AtmService
                 ToLabel = $"Deposit from {atm.Label}",
                 CreatedAt = DateTimeOffset.UtcNow
             },
+            // Customer receives credit: ToEntry is the customer leg.
+            applied => JsonSerializer.Serialize(new MoneyMovementResult
+            {
+                Account = ToSummary(applied.ToAccount, applied.ToEntry)
+            }),
             cancellationToken);
 
-        // Customer receives credit: ToEntry is the customer leg.
-        var result = new MoneyMovementResult
-        {
-            Account = ToSummary(applied.ToAccount, applied.ToEntry)
-        };
-
-        await StoreIdempotencyAsync(idempotencyKey, requestHash, result, cancellationToken);
-        return result;
+        return DeserializeMoney(outcome.ResponseBody);
     }
 
     public async Task<MoneyMovementResult> WithdrawAsync(
@@ -100,12 +94,6 @@ public sealed class AtmService
         ValidateIdempotencyKey(idempotencyKey);
 
         var requestHash = HashRequest("withdraw", accountId, null, amount);
-        var cached = await TryReplayAsync(idempotencyKey, requestHash, cancellationToken);
-        if (cached is not null)
-        {
-            return DeserializeMoney(cached);
-        }
-
         var customer = await RequireCustomerAccountAsync(accountId, cancellationToken);
         if (customer.Balance < amount)
         {
@@ -114,7 +102,9 @@ public sealed class AtmService
 
         var atm = await RequireSystemAccountAsync(AccountKind.Atm, cancellationToken);
 
-        var applied = await _repository.ApplyTransferAsync(
+        var outcome = await _repository.ApplyTransferOnceAsync(
+            idempotencyKey,
+            requestHash,
             new TransferMutation
             {
                 TransactionId = Guid.NewGuid(),
@@ -125,15 +115,13 @@ public sealed class AtmService
                 ToLabel = $"Withdraw to {atm.Label}",
                 CreatedAt = DateTimeOffset.UtcNow
             },
+            applied => JsonSerializer.Serialize(new MoneyMovementResult
+            {
+                Account = ToSummary(applied.FromAccount, applied.FromEntry)
+            }),
             cancellationToken);
 
-        var result = new MoneyMovementResult
-        {
-            Account = ToSummary(applied.FromAccount, applied.FromEntry)
-        };
-
-        await StoreIdempotencyAsync(idempotencyKey, requestHash, result, cancellationToken);
-        return result;
+        return DeserializeMoney(outcome.ResponseBody);
     }
 
     public async Task<TransferResult> TransferAsync(
@@ -152,12 +140,6 @@ public sealed class AtmService
         }
 
         var requestHash = HashRequest("transfer", fromAccountId, toAccountId, amount);
-        var cached = await TryReplayAsync(idempotencyKey, requestHash, cancellationToken);
-        if (cached is not null)
-        {
-            return DeserializeTransfer(cached);
-        }
-
         var from = await RequireCustomerAccountAsync(fromAccountId, cancellationToken);
         var to = await RequireCustomerAccountAsync(toAccountId, cancellationToken);
 
@@ -166,7 +148,9 @@ public sealed class AtmService
             throw new InsufficientFundsException("Insufficient funds.");
         }
 
-        var applied = await _repository.ApplyTransferAsync(
+        var outcome = await _repository.ApplyTransferOnceAsync(
+            idempotencyKey,
+            requestHash,
             new TransferMutation
             {
                 TransactionId = Guid.NewGuid(),
@@ -177,16 +161,14 @@ public sealed class AtmService
                 ToLabel = $"Transfer from {from.Label}",
                 CreatedAt = DateTimeOffset.UtcNow
             },
+            applied => JsonSerializer.Serialize(new TransferResult
+            {
+                From = ToSummary(applied.FromAccount, applied.FromEntry),
+                To = ToSummary(applied.ToAccount, applied.ToEntry)
+            }),
             cancellationToken);
 
-        var result = new TransferResult
-        {
-            From = ToSummary(applied.FromAccount, applied.FromEntry),
-            To = ToSummary(applied.ToAccount, applied.ToEntry)
-        };
-
-        await StoreIdempotencyAsync(idempotencyKey, requestHash, result, cancellationToken);
-        return result;
+        return DeserializeTransfer(outcome.ResponseBody);
     }
 
     private async Task<Account> RequireCustomerAccountAsync(
@@ -226,45 +208,6 @@ public sealed class AtmService
         {
             throw new ValidationException("Idempotency-Key header is required.");
         }
-    }
-
-    private async Task<string?> TryReplayAsync(
-        string key,
-        string requestHash,
-        CancellationToken cancellationToken)
-    {
-        var existing = await _repository.FindIdempotencyAsync(key, cancellationToken);
-        if (existing is null)
-        {
-            return null;
-        }
-
-        if (!string.Equals(existing.RequestHash, requestHash, StringComparison.Ordinal))
-        {
-            throw new ConflictException(
-                "Idempotency-Key was already used with a different request.");
-        }
-
-        return existing.ResponseBody;
-    }
-
-    private async Task StoreIdempotencyAsync<T>(
-        string key,
-        string requestHash,
-        T payload,
-        CancellationToken cancellationToken)
-    {
-        var body = JsonSerializer.Serialize(payload);
-        await _repository.SaveIdempotencyAsync(
-            new IdempotencyRecord
-            {
-                Key = key,
-                RequestHash = requestHash,
-                StatusCode = 200,
-                ResponseBody = body,
-                CreatedAt = DateTimeOffset.UtcNow
-            },
-            cancellationToken);
     }
 
     private static MoneyMovementResult DeserializeMoney(string body) =>

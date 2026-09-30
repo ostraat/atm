@@ -50,7 +50,9 @@ Each economic event has a shared `transactionId` and **two** `LedgerEntry` legs.
 
 ## Idempotency
 
-Mutating POSTs require the `Idempotency-Key` request header, following the [The Idempotency-Key HTTP Header Field](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/) (not yet an RFC). Clients generate a unique key (UUID recommended). The server fingerprints the request body with the key: same key and body replay the original success response after the ledger commit; same key with a different body yields `409` (the draft suggests `422` for that conflict; this API uses `409`). Missing key yields `400`.
+Mutating POSTs require the `Idempotency-Key` request header, following the [The Idempotency-Key HTTP Header Field](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/) (not yet an RFC). Clients generate a unique key (UUID recommended). The server fingerprints the request body with the key: same key and body replay the original success response; same key with a different body yields `409` (the draft suggests `422` for that conflict; this API uses `409`). Missing key yields `400`.
+
+Ledger apply and idempotency storage share one DB transaction (`ApplyTransferOnceAsync`). If two requests race on the same key, the loser rolls back its transfer and replays the winner’s response so the ledger is credited once.
 
 ## API envelopes
 
@@ -105,8 +107,8 @@ sequenceDiagram
   UI->>API: POST /api/v1/deposit
   Note over UI,API: Idempotency-Key<br/>Body amount cents
   API->>Svc: DepositAsync
-  Svc->>Repo: ApplyTransferAsync
-  Note over Svc,Repo: Two signed legs<br/>Sum to 0<br/>Update balances
+  Svc->>Repo: ApplyTransferOnceAsync
+  Note over Svc,Repo: Claim key + two signed legs<br/>in one DB transaction
   Repo->>DB: BEGIN COMMIT
   API-->>UI: DepositResponse
 ```

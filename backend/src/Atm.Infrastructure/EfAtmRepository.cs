@@ -135,6 +135,75 @@ public sealed class EfAtmRepository : IAtmRepository
         return result;
     }
 
+    public async Task<IdempotentTransferResult> ApplyTransferOnceAsync(
+        string idempotencyKey,
+        string requestHash,
+        TransferMutation mutation,
+        Func<TransferApplyResult, string> serializeResponse,
+        CancellationToken cancellationToken = default)
+    {
+        await using var tx = await _db.Database.BeginTransactionAsync(cancellationToken);
+
+        var existing = await _db.IdempotencyRecords.AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Key == idempotencyKey, cancellationToken);
+        if (existing is not null)
+        {
+            EnsureMatchingHash(existing, requestHash);
+            await tx.CommitAsync(cancellationToken);
+            return new IdempotentTransferResult
+            {
+                ResponseBody = existing.ResponseBody,
+                Replayed = true
+            };
+        }
+
+        try
+        {
+            var applied = await ApplyTransferCoreAsync(mutation, cancellationToken);
+            var body = serializeResponse(applied);
+            _db.IdempotencyRecords.Add(new IdempotencyRecord
+            {
+                Key = idempotencyKey,
+                RequestHash = requestHash,
+                StatusCode = 200,
+                ResponseBody = body,
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+            await _db.SaveChangesAsync(cancellationToken);
+            await tx.CommitAsync(cancellationToken);
+            return new IdempotentTransferResult
+            {
+                ResponseBody = body,
+                Replayed = false
+            };
+        }
+        catch (DbUpdateException)
+        {
+            // Another transaction claimed the key first; undo our ledger write and replay.
+            await tx.RollbackAsync(cancellationToken);
+            _db.ChangeTracker.Clear();
+
+            var winner = await FindIdempotencyAsync(idempotencyKey, cancellationToken)
+                ?? throw new InvalidOperationException(
+                    $"Idempotency key '{idempotencyKey}' conflicted but was not found on retry.");
+            EnsureMatchingHash(winner, requestHash);
+            return new IdempotentTransferResult
+            {
+                ResponseBody = winner.ResponseBody,
+                Replayed = true
+            };
+        }
+    }
+
+    private static void EnsureMatchingHash(IdempotencyRecord existing, string requestHash)
+    {
+        if (!string.Equals(existing.RequestHash, requestHash, StringComparison.Ordinal))
+        {
+            throw new ConflictException(
+                "Idempotency-Key was already used with a different request.");
+        }
+    }
+
     private async Task<TransferApplyResult> ApplyTransferCoreAsync(
         TransferMutation mutation,
         CancellationToken cancellationToken)
