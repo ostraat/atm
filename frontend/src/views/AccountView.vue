@@ -49,8 +49,10 @@ watch(() => props.id, load)
   <p v-else-if="error" class="error">{{ error }}</p>
   <template v-else-if="account">
     <div class="card" style="margin-bottom: 1rem">
-      <div class="label">{{ account.label }}</div>
-      <div class="balance">{{ formatMoney(account.balance) }}</div>
+      <div class="account-heading">
+        <div class="label">{{ account.label }}</div>
+        <div class="balance">{{ formatMoney(account.balance) }}</div>
+      </div>
     </div>
     <h2>Transactions</h2>
     <ul class="tx-list card">
@@ -59,7 +61,7 @@ watch(() => props.id, load)
           <div>{{ tx.label }}</div>
           <div class="muted">{{ new Date(tx.createdAt).toLocaleString() }}</div>
         </div>
-        <strong>{{ formatMoney(tx.amount) }}</strong>
+        <strong :class="{ 'amount-negative': tx.amount < 0 }">{{ formatMoney(tx.amount) }}</strong>
       </li>
       <li v-if="transactions.length === 0" class="muted">No transactions yet.</li>
     </ul>

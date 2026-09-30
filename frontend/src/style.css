@@ -109,19 +109,55 @@ button:disabled {
   color: inherit;
 }
 
-.account-row .label { font-size: 1.1rem; font-weight: 700; }
-.balance { font-size: 1.35rem; font-weight: 700; margin-top: 0.25rem; }
+.account-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.account-heading .label,
+.account-row .label {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.balance {
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-align: right;
+  margin-left: auto;
+}
+
+.account-row .balance {
+  margin-top: 0;
+}
+
 .muted { color: var(--muted); font-size: 0.92rem; }
 .warning { color: var(--danger); font-weight: 600; margin: 0.75rem 0; }
 .error { color: var(--danger); margin: 0.75rem 0; }
+.amount-negative { color: var(--danger); }
 
-.tx-list { list-style: none; padding: 0; margin: 0; }
+.latest {
+  margin-top: 0.5rem;
+}
+
+.tx-list {
+  list-style: none;
+  padding: 0.25rem 0;
+  margin: 0;
+}
+
 .tx-list li {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.75rem 0;
+  padding: 1rem 0.75rem;
   border-bottom: 1px solid var(--border);
+}
+
+.tx-list li:last-child {
+  border-bottom: none;
 }
 
 input[type="text"], input[type="number"] {
@@ -157,7 +193,6 @@ input[type="text"], input[type="number"] {
 
 @media (max-width: 520px) {
   .actions { grid-template-columns: 1fr; }
-  .latest { display: none; }
 }
 
 a.btn {

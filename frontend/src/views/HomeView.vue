@@ -36,10 +36,15 @@ onUnmounted(() => setHeaderBack(null))
       class="card account-row"
       :to="{ name: 'account', params: { id: account.id } }"
     >
-      <div class="label">{{ account.label }}</div>
-      <div class="balance">{{ formatMoney(account.balance) }}</div>
+      <div class="account-heading">
+        <div class="label">{{ account.label }}</div>
+        <div class="balance">{{ formatMoney(account.balance) }}</div>
+      </div>
       <div v-if="account.latestTransaction" class="muted latest">
-        {{ account.latestTransaction.label }} · {{ formatMoney(account.latestTransaction.amount) }}
+        Last Transaction:
+        <span :class="{ 'amount-negative': account.latestTransaction.amount < 0 }">
+          {{ account.latestTransaction.label }} · {{ formatMoney(account.latestTransaction.amount) }}
+        </span>
       </div>
     </router-link>
   </div>
