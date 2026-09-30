@@ -86,6 +86,7 @@ classDiagram
   class IAtmRepository
   class EfAtmRepository
   class AtmController
+  LedgerEntry --> Account
   AtmController --> AtmService
   AtmService --> IAtmRepository
   EfAtmRepository ..|> IAtmRepository
