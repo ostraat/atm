@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Atm.Api.Models;
 using Atm.Domain;
 using Microsoft.AspNetCore.Mvc;
@@ -52,14 +53,14 @@ public sealed class AtmController : ControllerBase
     [HttpPost("deposit")]
     [ProducesResponseType(typeof(DepositResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<DepositResponse>> Deposit(
+        [FromHeader(Name = "Idempotency-Key"), Required] string idempotencyKey,
         [FromBody] DepositRequest request,
         CancellationToken cancellationToken)
     {
-        var key = RequireIdempotencyKey();
-        var result = await _atm.DepositAsync(request.To, request.Amount, key, cancellationToken);
+        var result = await _atm.DepositAsync(request.To, request.Amount, idempotencyKey, cancellationToken);
         return Ok(new DepositResponse
         {
-            Account = AccountDto.From(result.Account),
+            To = AccountDto.From(result.Account),
             Transaction = TransactionDto.From(result.Transaction)
         });
     }
@@ -67,14 +68,14 @@ public sealed class AtmController : ControllerBase
     [HttpPost("withdraw")]
     [ProducesResponseType(typeof(WithdrawResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<WithdrawResponse>> Withdraw(
+        [FromHeader(Name = "Idempotency-Key"), Required] string idempotencyKey,
         [FromBody] WithdrawRequest request,
         CancellationToken cancellationToken)
     {
-        var key = RequireIdempotencyKey();
-        var result = await _atm.WithdrawAsync(request.From, request.Amount, key, cancellationToken);
+        var result = await _atm.WithdrawAsync(request.From, request.Amount, idempotencyKey, cancellationToken);
         return Ok(new WithdrawResponse
         {
-            Account = AccountDto.From(result.Account),
+            From = AccountDto.From(result.Account),
             Transaction = TransactionDto.From(result.Transaction)
         });
     }
@@ -82,26 +83,15 @@ public sealed class AtmController : ControllerBase
     [HttpPost("transfer")]
     [ProducesResponseType(typeof(TransferResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<TransferResponse>> Transfer(
+        [FromHeader(Name = "Idempotency-Key"), Required] string idempotencyKey,
         [FromBody] TransferRequest request,
         CancellationToken cancellationToken)
     {
-        var key = RequireIdempotencyKey();
-        var result = await _atm.TransferAsync(request.From, request.To, request.Amount, key, cancellationToken);
+        var result = await _atm.TransferAsync(request.From, request.To, request.Amount, idempotencyKey, cancellationToken);
         return Ok(new TransferResponse
         {
             From = AccountDto.From(result.From),
             To = AccountDto.From(result.To)
         });
-    }
-
-    private string RequireIdempotencyKey()
-    {
-        if (!Request.Headers.TryGetValue("Idempotency-Key", out var values) ||
-            string.IsNullOrWhiteSpace(values.FirstOrDefault()))
-        {
-            throw new ValidationException("Idempotency-Key header is required.");
-        }
-
-        return values.ToString();
     }
 }

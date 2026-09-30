@@ -63,14 +63,14 @@ public sealed class TransactionsResponse
 public sealed class DepositResponse
 {
     public string? Error { get; init; }
-    public AccountDto? Account { get; init; }
+    public AccountDto? To { get; init; }
     public TransactionDto? Transaction { get; init; }
 }
 
 public sealed class WithdrawResponse
 {
     public string? Error { get; init; }
-    public AccountDto? Account { get; init; }
+    public AccountDto? From { get; init; }
     public TransactionDto? Transaction { get; init; }
 }
 

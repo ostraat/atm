@@ -39,7 +39,7 @@ curl -fsS -X POST "$BASE_URL/api/v1/deposit" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: $KEY" \
   -d "{\"to\":\"$CHECKING\",\"amount\":10}" >/tmp/smoke2.json
-python3 -c 'import json; a=json.load(open("/tmp/smoke1.json")); b=json.load(open("/tmp/smoke2.json")); assert a["account"]["balance"]==b["account"]["balance"]'
+python3 -c 'import json; a=json.load(open("/tmp/smoke1.json")); b=json.load(open("/tmp/smoke2.json")); assert a["to"]["balance"]==b["to"]["balance"]'
 
 echo "Swagger..."
 curl -fsS -o /dev/null -w "%{http_code}\n" "$BASE_URL/swagger/v1/swagger.json" | grep -q 200

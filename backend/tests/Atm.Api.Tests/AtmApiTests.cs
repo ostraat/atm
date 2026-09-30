@@ -88,7 +88,7 @@ public class AtmApiTests
             var raw = await response.Content.ReadAsStringAsync();
             Assert.True(response.IsSuccessStatusCode, raw);
             var body = await response.Content.ReadFromJsonAsync<DepositResponse>();
-            Assert.Equal(10_250, body!.Account!.Balance);
+            Assert.Equal(10_250, body!.To!.Balance);
             Assert.Equal(250, body.Transaction!.Amount);
             Assert.Equal("Deposit from ATM", body.Transaction.Label);
         }
