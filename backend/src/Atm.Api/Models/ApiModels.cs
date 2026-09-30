@@ -81,8 +81,19 @@ public sealed class TransferResponse
     public AccountDto? To { get; init; }
 }
 
-public sealed class MoneyRequest
+public sealed class DepositRequest
 {
+    public Guid To { get; init; }
+
+    /// <summary>Positive amount in cents.</summary>
+    [Range(1, long.MaxValue)]
+    public long Amount { get; init; }
+}
+
+public sealed class WithdrawRequest
+{
+    public Guid From { get; init; }
+
     /// <summary>Positive amount in cents.</summary>
     [Range(1, long.MaxValue)]
     public long Amount { get; init; }

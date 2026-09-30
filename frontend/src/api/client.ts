@@ -36,21 +36,21 @@ export async function getTransactions(id: string): Promise<TransactionsResponse>
   return response.json()
 }
 
-export async function deposit(accountId: string, amount: number): Promise<DepositResponse> {
-  const response = await fetch(`/api/v1/accounts/${accountId}/deposit`, {
+export async function deposit(to: string, amount: number): Promise<DepositResponse> {
+  const response = await fetch('/api/v1/deposit', {
     method: 'POST',
     headers: { ...jsonHeaders, 'Idempotency-Key': crypto.randomUUID() },
-    body: JSON.stringify({ amount })
+    body: JSON.stringify({ to, amount })
   })
   if (!response.ok) throw new Error(await readError(response))
   return response.json()
 }
 
-export async function withdraw(accountId: string, amount: number): Promise<WithdrawResponse> {
-  const response = await fetch(`/api/v1/accounts/${accountId}/withdraw`, {
+export async function withdraw(from: string, amount: number): Promise<WithdrawResponse> {
+  const response = await fetch('/api/v1/withdraw', {
     method: 'POST',
     headers: { ...jsonHeaders, 'Idempotency-Key': crypto.randomUUID() },
-    body: JSON.stringify({ amount })
+    body: JSON.stringify({ from, amount })
   })
   if (!response.ok) throw new Error(await readError(response))
   return response.json()

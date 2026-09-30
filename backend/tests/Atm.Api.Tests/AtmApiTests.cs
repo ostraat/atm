@@ -78,9 +78,9 @@ public class AtmApiTests
             var checking = list.Accounts.Single(a => a.Label == "Checking");
             Assert.Equal(10_000, checking.Balance);
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/accounts/{checking.Id}/deposit")
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/deposit")
             {
-                Content = JsonContent.Create(new MoneyRequest { Amount = 250 })
+                Content = JsonContent.Create(new DepositRequest { To = checking.Id, Amount = 250 })
             };
             request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString());
 
@@ -143,8 +143,8 @@ public class AtmApiTests
             var list = await client.GetFromJsonAsync<AccountsResponse>("/api/v1/accounts");
             var checking = list!.Accounts.Single(a => a.Label == "Checking");
             var response = await client.PostAsJsonAsync(
-                $"/api/v1/accounts/{checking.Id}/deposit",
-                new MoneyRequest { Amount = 10 });
+                "/api/v1/deposit",
+                new DepositRequest { To = checking.Id, Amount = 10 });
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
         finally

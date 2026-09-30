@@ -13,16 +13,16 @@ CHECKING=$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(a["id
 SAVINGS=$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(a["id"] for a in d["accounts"] if a["label"]=="Savings"))' <<<"$ACCOUNTS")
 
 echo "Deposit..."
-curl -fsS -X POST "$BASE_URL/api/v1/accounts/$CHECKING/deposit" \
+curl -fsS -X POST "$BASE_URL/api/v1/deposit" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: smoke-dep-$(date +%s)" \
-  -d '{"amount":100}' | grep -q transaction
+  -d "{\"to\":\"$CHECKING\",\"amount\":100}" | grep -q transaction
 
 echo "Withdraw..."
-curl -fsS -X POST "$BASE_URL/api/v1/accounts/$CHECKING/withdraw" \
+curl -fsS -X POST "$BASE_URL/api/v1/withdraw" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: smoke-wd-$(date +%s)" \
-  -d '{"amount":50}' | grep -q transaction
+  -d "{\"from\":\"$CHECKING\",\"amount\":50}" | grep -q transaction
 
 echo "Transfer..."
 curl -fsS -X POST "$BASE_URL/api/v1/transfer" \
@@ -31,14 +31,14 @@ curl -fsS -X POST "$BASE_URL/api/v1/transfer" \
   -d "{\"from\":\"$CHECKING\",\"to\":\"$SAVINGS\",\"amount\":25}" | grep -q from
 
 KEY="smoke-idem-$(date +%s)"
-curl -fsS -X POST "$BASE_URL/api/v1/accounts/$CHECKING/deposit" \
+curl -fsS -X POST "$BASE_URL/api/v1/deposit" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: $KEY" \
-  -d '{"amount":10}' >/tmp/smoke1.json
-curl -fsS -X POST "$BASE_URL/api/v1/accounts/$CHECKING/deposit" \
+  -d "{\"to\":\"$CHECKING\",\"amount\":10}" >/tmp/smoke1.json
+curl -fsS -X POST "$BASE_URL/api/v1/deposit" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: $KEY" \
-  -d '{"amount":10}' >/tmp/smoke2.json
+  -d "{\"to\":\"$CHECKING\",\"amount\":10}" >/tmp/smoke2.json
 python3 -c 'import json; a=json.load(open("/tmp/smoke1.json")); b=json.load(open("/tmp/smoke2.json")); assert a["account"]["balance"]==b["account"]["balance"]'
 
 echo "Swagger..."

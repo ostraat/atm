@@ -49,15 +49,14 @@ public sealed class AtmController : ControllerBase
         });
     }
 
-    [HttpPost("accounts/{accountId:guid}/deposit")]
+    [HttpPost("deposit")]
     [ProducesResponseType(typeof(DepositResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<DepositResponse>> Deposit(
-        Guid accountId,
-        [FromBody] MoneyRequest request,
+        [FromBody] DepositRequest request,
         CancellationToken cancellationToken)
     {
         var key = RequireIdempotencyKey();
-        var result = await _atm.DepositAsync(accountId, request.Amount, key, cancellationToken);
+        var result = await _atm.DepositAsync(request.To, request.Amount, key, cancellationToken);
         return Ok(new DepositResponse
         {
             Account = AccountDto.From(result.Account),
@@ -65,15 +64,14 @@ public sealed class AtmController : ControllerBase
         });
     }
 
-    [HttpPost("accounts/{accountId:guid}/withdraw")]
+    [HttpPost("withdraw")]
     [ProducesResponseType(typeof(WithdrawResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<WithdrawResponse>> Withdraw(
-        Guid accountId,
-        [FromBody] MoneyRequest request,
+        [FromBody] WithdrawRequest request,
         CancellationToken cancellationToken)
     {
         var key = RequireIdempotencyKey();
-        var result = await _atm.WithdrawAsync(accountId, request.Amount, key, cancellationToken);
+        var result = await _atm.WithdrawAsync(request.From, request.Amount, key, cancellationToken);
         return Ok(new WithdrawResponse
         {
             Account = AccountDto.From(result.Account),

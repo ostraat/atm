@@ -42,6 +42,12 @@ Each economic event has a shared `transactionId` and **two** `LedgerEntry` legs.
 
 `Account.Balance` is updated in the same DB transaction as new legs so `GET /accounts` stays fast. Ledger amounts remain the audit source of truth.
 
+## Mutating endpoints
+
+- `POST /api/v1/deposit` — body `DepositRequest` `{ to, amount }`
+- `POST /api/v1/withdraw` — body `WithdrawRequest` `{ from, amount }`
+- `POST /api/v1/transfer` — body `TransferRequest` `{ from, to, amount }`
+
 ## Idempotency
 
 Mutating POSTs require `Idempotency-Key`. Success responses are returned only after the ledger commit. Replays with the same key and body return the original result; a different body yields `409`.
@@ -93,7 +99,7 @@ sequenceDiagram
   participant Repo as IAtmRepository
   participant DB as SQLite
 
-  UI->>API: POST deposit
+  UI->>API: POST /api/v1/deposit
   Note over UI,API: Idempotency-Key<br/>Body amount cents
   API->>Svc: DepositAsync
   Svc->>Repo: ApplyTransferAsync
