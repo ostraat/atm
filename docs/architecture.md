@@ -50,7 +50,7 @@ Each economic event has a shared `transactionId` and **two** `LedgerEntry` legs.
 
 ## Idempotency
 
-Mutating POSTs require `Idempotency-Key`. Success responses are returned only after the ledger commit. Replays with the same key and body return the original result; a different body yields `409`.
+Mutating POSTs require the `Idempotency-Key` request header, following the [The Idempotency-Key HTTP Header Field](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/) (not yet an RFC). Clients generate a unique key (UUID recommended). The server fingerprints the request body with the key: same key and body replay the original success response after the ledger commit; same key with a different body yields `409` (the draft suggests `422` for that conflict; this API uses `409`). Missing key yields `400`.
 
 ## API envelopes
 
