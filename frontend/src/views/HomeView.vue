@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import ActionBar from '../components/ActionBar.vue'
 import { getAccounts } from '../api/client'
+import { setHeaderBack } from '../headerBack'
 import type { Account } from '../types/api'
 import { formatMoney } from '../format'
 
@@ -10,6 +11,7 @@ const error = ref('')
 const loading = ref(true)
 
 onMounted(async () => {
+  setHeaderBack(null)
   try {
     const response = await getAccounts()
     accounts.value = response.accounts
@@ -19,6 +21,8 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+onUnmounted(() => setHeaderBack(null))
 </script>
 
 <template>

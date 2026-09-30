@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import ActionBar from '../components/ActionBar.vue'
 import { getAccount, getTransactions } from '../api/client'
+import { setHeaderBack } from '../headerBack'
 import type { Account, Transaction } from '../types/api'
 import { formatMoney } from '../format'
 
@@ -12,6 +13,10 @@ const account = ref<Account | null>(null)
 const transactions = ref<Transaction[]>([])
 const error = ref('')
 const loading = ref(true)
+
+function goHome() {
+  router.push({ name: 'home' })
+}
 
 async function load() {
   loading.value = true
@@ -30,12 +35,15 @@ async function load() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  setHeaderBack(goHome)
+  load()
+})
+onUnmounted(() => setHeaderBack(null))
 watch(() => props.id, load)
 </script>
 
 <template>
-  <button class="secondary" style="margin-bottom: 1rem" @click="router.push({ name: 'home' })">Back</button>
   <ActionBar :account-id="id" />
   <p v-if="loading" class="muted">Loading…</p>
   <p v-else-if="error" class="error">{{ error }}</p>

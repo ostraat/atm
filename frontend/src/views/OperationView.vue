@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { deposit, getAccounts, transfer, withdraw } from '../api/client'
 import type { Account } from '../types/api'
+import { setHeaderBack } from '../headerBack'
 import { formatMoney, parseDollarsToCents } from '../format'
 
 const props = defineProps<{ type: string }>()
@@ -30,19 +31,6 @@ const selectedAccount = computed(() => accounts.value.find(a => a.id === selecte
 const fromAccount = computed(() => accounts.value.find(a => a.id === fromId.value) ?? null)
 const toAccount = computed(() => accounts.value.find(a => a.id === toId.value) ?? null)
 const sameAccount = computed(() => !!fromId.value && fromId.value === toId.value)
-
-onMounted(async () => {
-  const response = await getAccounts()
-  accounts.value = response.accounts
-  const presetAccount = typeof route.query.accountId === 'string' ? route.query.accountId : null
-  const presetFrom = typeof route.query.from === 'string' ? route.query.from : null
-  if (!isTransfer.value && presetAccount) {
-    selectedAccountId.value = presetAccount
-  }
-  if (isTransfer.value && presetFrom) {
-    fromId.value = presetFrom
-  }
-})
 
 watch(() => props.type, () => {
   step.value = 'amount'
@@ -87,6 +75,22 @@ function back() {
   if (step.value === 'from' || step.value === 'account') { step.value = 'amount'; return }
   router.back()
 }
+
+onMounted(async () => {
+  setHeaderBack(back)
+  const response = await getAccounts()
+  accounts.value = response.accounts
+  const presetAccount = typeof route.query.accountId === 'string' ? route.query.accountId : null
+  const presetFrom = typeof route.query.from === 'string' ? route.query.from : null
+  if (!isTransfer.value && presetAccount) {
+    selectedAccountId.value = presetAccount
+  }
+  if (isTransfer.value && presetFrom) {
+    fromId.value = presetFrom
+  }
+})
+onUnmounted(() => setHeaderBack(null))
+watch(step, () => setHeaderBack(back))
 
 const summaryText = computed(() => {
   const amount = amountCents.value
@@ -135,7 +139,6 @@ async function confirm() {
 </script>
 
 <template>
-  <button class="secondary" style="margin-bottom: 1rem" @click="back">Back</button>
   <h2>{{ title }}</h2>
 
   <div v-if="step === 'amount'" class="card">
