@@ -33,6 +33,7 @@ cd frontend && npm ci && npm run dev
 
 - Gather requirements to separate accounts / ATM / transfers (services and APIs) and use events per concern
 - Consider GraphQL (or REST with a second per-account transactions request, count=1) so the account view can include the latest transaction in one client round-trip
+- Standard error responses (`application/problem+json` / RFC 7807 Problem Details)
 - Users / authentication
 - Multi-currency (pending requirements)
 - Transaction filters: date range, offset or cursor pagination
